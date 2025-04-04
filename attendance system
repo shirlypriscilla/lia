@@ -1,0 +1,84 @@
+import datetime
+
+class Student:
+    def __init__(self, student_id, name):
+        self.student_id = student_id
+        self.name = name
+        self.attendance = {}  # Dictionary to store attendance (date: present/absent)
+
+    def mark_attendance(self, date, present):
+        self.attendance[date] = present
+
+    def get_attendance_report(self):
+        return self.attendance
+
+    def __str__(self):
+        return f"ID: {self.student_id}, Name: {self.name}"
+
+class AttendanceSystem:
+    def __init__(self):
+        self.students = {}  # Dictionary to store students (student_id: Student object)
+
+    def add_student(self, student_id, name):
+        if student_id not in self.students:
+            self.students[student_id] = Student(student_id, name)
+            return True
+        else:
+            return False # student ID already exists
+
+    def mark_attendance(self, student_id, date, present):
+        if student_id in self.students:
+            self.students[student_id].mark_attendance(date, present)
+            return True
+        else:
+            return False # student ID not found
+
+    def generate_student_report(self, student_id):
+        if student_id in self.students:
+            student = self.students[student_id]
+            return student.get_attendance_report()
+        else:
+            return None # student ID not found
+
+    def generate_overall_report(self, date=None):
+        report = {}
+        for student_id, student in self.students.items():
+            if date:
+                if date in student.attendance:
+                    report[student_id] = {
+                        "name": student.name,
+                        "attendance": student.attendance[date],
+                    }
+                else:
+                    report[student_id] = {
+                        "name": student.name,
+                        "attendance": "N/A" # Not applicable if no attendance on that date
+                    }
+
+            else:
+                report[student_id] = {
+                    "name": student.name,
+                    "attendance": student.get_attendance_report(),
+                }
+        return report
+
+# Example Usage:
+attendance_system = AttendanceSystem()
+
+attendance_system.add_student("S101", "Alice Smith")
+attendance_system.add_student("S102", "Bob Johnson")
+attendance_system.add_student("S103", "Charlie Brown")
+
+today = datetime.date.today().strftime("%Y-%m-%d") # Get today's date in YYYY-MM-DD format
+attendance_system.mark_attendance("S101", today, True)
+attendance_system.mark_attendance("S102", today, False)
+attendance_system.mark_attendance("S103", today, True)
+
+yesterday = (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+attendance_system.mark_attendance("S101", yesterday, True)
+attendance_system.mark_attendance("S102", yesterday, True)
+attendance_system.mark_attendance("S103", yesterday, False)
+
+print("Student Report (S101):", attendance_system.generate_student_report("S101"))
+print("Overall Report (Today):", attendance_system.generate_overall_report(today))
+print("Overall Report (All):", attendance_system.generate_overall_report()) 
